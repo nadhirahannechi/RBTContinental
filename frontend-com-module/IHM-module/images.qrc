@@ -1,0 +1,44 @@
+<RCC>
+    <qresource prefix="/images">
+        <file alias="app">images/app_icon.jpg</file>
+        <file alias="disconnect">images/Disconnect_icon.jpg</file>
+        <file alias="exit">images/exit_icon.png</file>
+        <file alias="test list">images/test_list.png</file>
+        <file alias="treeview">images/treeview.png</file>
+        <file alias="Description">images/description.png</file>
+        <file>images/Export1.png</file>
+        <file>images/Import.png</file>
+        <file>images/newFile.png</file>
+        <file>images/Open.png</file>
+        <file>images/Stop.png</file>
+        <file>images/Connect1.png</file>
+        <file>images/Report1.png</file>
+        <file>images/log.png</file>
+        <file>images/Save.png</file>
+        <file>images/fail.png</file>
+        <file>images/success.png</file>
+        <file>images/unavailable.png</file>
+        <file>images/unexecuted.png</file>
+        <file>images/clear.png</file>
+        <file>images/Checked.png</file>
+        <file>images/Clear1.png</file>
+        <file>images/connected.png</file>
+        <file>images/Disconnected.png</file>
+    </qresource>
+    <qresource prefix="/OtherImages">
+        <file>images/app_icon.jpg</file>
+        <file>images/description.png</file>
+        <file>images/focus.png</file>
+        <file>images/test_list.png</file>
+        <file>images/treeview.png</file>
+        <file>images/test_suite.png</file>
+        <file>images/disconnect.png</file>
+        <file>images/run.png</file>
+        <file>images/Focus.png</file>
+        <file>images/Run.png</file>
+        <file>images/Config.png</file>
+        <file>images/TestCase.png</file>
+        <file alias="TestCaseIcon">images/TestCaseIcon.png</file>
+        <file>images/inprogress.gif</file>
+    </qresource>
+</RCC>

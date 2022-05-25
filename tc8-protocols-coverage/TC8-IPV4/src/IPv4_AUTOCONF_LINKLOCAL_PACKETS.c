@@ -1,0 +1,7 @@
+#include "IPv4_AUTOCONF_LINKLOCAL_PACKETS.h"
+
+int IPv4_AUTOCONF_LINKLOCAL_PACKETS_04()
+{
+	return 2;
+}
+

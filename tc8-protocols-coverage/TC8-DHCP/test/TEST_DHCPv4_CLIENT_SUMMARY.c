@@ -1,0 +1,10 @@
+#include "DHCPv4_CLIENT_SUMMARY.h"
+
+int main()
+{
+	DHCPv4_CLIENT_SUMMARY_01();
+	DHCPv4_CLIENT_SUMMARY_02();
+	DHCPv4_CLIENT_SUMMARY_03();
+    	return 0;
+}
+

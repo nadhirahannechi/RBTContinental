@@ -1,0 +1,12 @@
+#ifndef ETLCOMMODULE_GLOBAL_H
+#define ETLCOMMODULE_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#if defined(ETLCOMMODULE_LIBRARY)
+#  define ETLCOMMODULE_EXPORT Q_DECL_EXPORT
+#else
+#  define ETLCOMMODULE_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // ETLCOMMODULE_GLOBAL_H

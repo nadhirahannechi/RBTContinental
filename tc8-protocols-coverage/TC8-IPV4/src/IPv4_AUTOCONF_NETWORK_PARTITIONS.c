@@ -1,0 +1,7 @@
+#include "IPv4_AUTOCONF_NETWORK_PARTITIONS.h"
+
+int IPv4_AUTOCONF_NETWORK_PARTITIONS_01()
+{
+	return 2;
+}
+

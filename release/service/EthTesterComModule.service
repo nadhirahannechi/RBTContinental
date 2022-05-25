@@ -1,0 +1,14 @@
+#/bin/bash
+
+[Unit]
+Description=example systemd service unit file.
+
+[Service]
+ExecStart=/usr/bin/EthTesterComModule
+Restart=on-failure
+RestartSec=10
+KillMode=process
+
+
+[Install]
+WantedBy=multi-user.target
