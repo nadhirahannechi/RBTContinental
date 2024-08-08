@@ -1,0 +1,16 @@
+# clean_and_install.yml
+---
+- name: Clean cache and install requirements
+  hosts: localhost
+  become: yes
+
+  tasks:
+    - name: Clear Ansible roles cache
+      file:
+        path: "{{ ansible_env.HOME }}/.ansible/roles"
+        state: absent
+
+    - name: Clear Ansible collections cache
+      file:
+        path: "{{ ansible_env.HOME }}/.ansible/collections"
+        state
