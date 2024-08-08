@@ -9,8 +9,31 @@
       file:
         path: "{{ ansible_env.HOME }}/.ansible/roles"
         state: absent
+        recurse: yes
 
     - name: Clear Ansible collections cache
       file:
         path: "{{ ansible_env.HOME }}/.ansible/collections"
-        state
+        state: absent
+        recurse: yes
+
+    - name: Clear pip cache
+      command: pip cache purge
+      when: "'pip' in ansible_env.PATH"
+
+    - name: Install Ansible roles
+      ansible.builtin.command:
+        cmd: ansible-galaxy install -r requirements.yml --force
+      args:
+        chdir: "{{ playbook_dir }}"
+
+    - name: Install Ansible collections
+      ansible.builtin.command:
+        cmd: ansible-galaxy collection install -r requirements.yml --force
+      args:
+        chdir: "{{ playbook_dir }}"
+
+    - name: Restart Ansible Tower services
+      ansible.builtin.systemd:
+        name: ansible-tower
+        state: restarted
