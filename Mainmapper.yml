@@ -1,0 +1,11 @@
+# roles/mapper/tasks/main.yml
+---
+- name: Perform variable mapping based on job_template_id
+  set_fact:
+    mapped_vars: "{{ mapping[job_template_id] }}"
+  when: job_template_id in mapping
+
+- name: Fail if mapping is not defined for the given job_template_id
+  fail:
+    msg: "No variable mapping found for job_template_id {{ job_template_id }}"
+  when: job_template_id not in mapping
