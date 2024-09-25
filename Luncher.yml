@@ -1,0 +1,8 @@
+# roles/launcher/tasks/main.yml
+---
+- name: Launch product playbook or job template
+  command: >
+    ansible-playbook -i inventory_file
+    -e "{{ mapped_vars }}"
+    playbooks/{{ job_template_id }}.yml
+  when: job_template_id is defined
