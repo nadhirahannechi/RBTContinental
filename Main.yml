@@ -1,0 +1,28 @@
+# main.yml
+---
+- name: Main playbook to handle requests from ServiceNow
+  hosts: localhost
+  gather_facts: no
+  vars_files:
+    - vars/variable_mapping.yml  # Inclure le fichier de mapping
+
+  tasks:
+    - name: Load variables sent from ServiceNow
+      set_fact:
+        var1: "{{ variable1 }}"
+        var2: "{{ variable2 }}"
+        var3: "{{ variable3 }}"
+        # Continuer pour toutes les variables...
+
+    - name: Map variables according to the job template ID
+      include_role:
+        name: mapper
+      vars:
+        job_template_id: "{{ job_template_id }}"
+
+    - name: Launch the appropriate product job template
+      include_role:
+        name: launcher
+      vars:
+        mapped_vars: "{{ mapped_vars }}"
+        job_template_id: "{{ job_template_id }}"
