@@ -1,13 +1,22 @@
-# vars/variable_mapping.yml
----
-mapping:
+# mapper.yml
+# Définit le mapping des `job_template_id` vers les rôles et les variables spécifiques pour chaque produit.
+
+job_template_mapping:
+  101: install_mq              # job_template_id 101 correspond au rôle install_mq
+  102: install_autosys         # job_template_id 102 correspond au rôle install_autosys
+  # Ajoutez d'autres mappings ici
+
+mappings:
   install_mq:
-    affected_host: "{{ var1 }}"
-    mq_version: "{{ var2 }}"
-    environment: "{{ var3 }}"
-    # Ajouter le mapping complet pour chaque variable
+    variable1: affected_host
+    variable2: mq_version
+    variable3: install_path
+    variable4: admin_user
+    variable5: config_options
+
   install_autosys:
-    target_host: "{{ var1 }}"
-    autosys_version: "{{ var2 }}"
-    license_key: "{{ var4 }}"
-    # Continuer pour d'autres templates de produits
+    variable1: target_server
+    variable2: autosys_version
+    variable3: config_file
+    variable4: license_key
+    variable5: timezone
