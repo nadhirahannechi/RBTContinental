@@ -1,0 +1,13 @@
+# vars/variable_mapping.yml
+---
+mapping:
+  install_mq:
+    affected_host: "{{ var1 }}"
+    mq_version: "{{ var2 }}"
+    environment: "{{ var3 }}"
+    # Ajouter le mapping complet pour chaque variable
+  install_autosys:
+    target_host: "{{ var1 }}"
+    autosys_version: "{{ var2 }}"
+    license_key: "{{ var4 }}"
+    # Continuer pour d'autres templates de produits
