@@ -1,18 +1,11 @@
-# workflows/main_workflow.yml
 ---
-- workflow_template:
-    name: Main Automation Workflow
-    description: Main workflow to handle requests from ServiceNow
-    jobs:
-      - name: Main Playbook Job
-        job_template: main_playbook_template
-        survey:
-          - variable1
-          - variable2
-          - variable3
-          # Continuer pour toutes les variables nécessaires
-      - name: Product Specific Job
-        job_template: "{{ job_template_id }}"
-        extra_vars:
-          # Passer les variables mappées au template de produit
-          mapped_vars: "{{ mapped_vars }}"
+# main_workflow.yml
+# Définition du workflow principal pour Ansible Tower.
+
+version: '2.1'
+name: Main Workflow
+description: Workflow principal pour l'exécution des demandes de ServiceNow.
+
+jobs:
+  - job_template_id: 1
+    job_template: 'Main Playbook'
