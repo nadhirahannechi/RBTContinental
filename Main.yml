@@ -4,7 +4,7 @@
   hosts: localhost
   gather_facts: no
   vars_files:
-    - vars/variable_mapping.yml  # Inclure le fichier de mapping
+    - varvariable_mapping.yml  # Inclure le fichier de mapping
 
   tasks:
     - name: Load variables sent from ServiceNow
