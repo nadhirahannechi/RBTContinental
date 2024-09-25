@@ -1,0 +1,18 @@
+# workflows/main_workflow.yml
+---
+- workflow_template:
+    name: Main Automation Workflow
+    description: Main workflow to handle requests from ServiceNow
+    jobs:
+      - name: Main Playbook Job
+        job_template: main_playbook_template
+        survey:
+          - variable1
+          - variable2
+          - variable3
+          # Continuer pour toutes les variables nécessaires
+      - name: Product Specific Job
+        job_template: "{{ job_template_id }}"
+        extra_vars:
+          # Passer les variables mappées au template de produit
+          mapped_vars: "{{ mapped_vars }}"
