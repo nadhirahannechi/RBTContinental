@@ -1,28 +1,52 @@
-# main.yml
 ---
-- name: Main playbook to handle requests from ServiceNow
+# main.yml
+# Playbook principal qui gère le mapping des variables et appelle les rôles de produit.
+
+- name: Main Playbook
   hosts: localhost
   gather_facts: no
   vars_files:
-    - varvariable_mapping.yml  # Inclure le fichier de mapping
+    - vars/variable_mapping.yml
 
   tasks:
-    - name: Load variables sent from ServiceNow
-      set_fact:
-        var1: "{{ variable1 }}"
-        var2: "{{ variable2 }}"
-        var3: "{{ variable3 }}"
-        # Continuer pour toutes les variables...
+    - name: Charger le fichier de mapping
+      include_vars:
+        file: mapper.yml
+        name: mappings_data
 
-    - name: Map variables according to the job template ID
+    - name: Déterminer le rôle basé sur le job_template_id
+      set_fact:
+        selected_role: "{{ mappings_data.job_template_mapping[job_template_id] }}"
+      when: job_template_id in mappings_data.job_template_mapping
+
+    - name: Vérifier l'existence du rôle pour le job_template_id
+      fail:
+        msg: "Aucun rôle trouvé pour le job_template_id : {{ job_template_id }}"
+      when: selected_role is not defined
+
+    - name: Mapper les variables dynamiquement pour le rôle sélectionné
       include_role:
         name: mapper
       vars:
         job_template_id: "{{ job_template_id }}"
+        vars: "{{ vars }}"
 
-    - name: Launch the appropriate product job template
-      include_role:
-        name: launcher
-      vars:
+    - name: Exécuter le rôle de produit isolé
+      ansible.builtin.include_tasks: "{{ selected_role }}/tasks/main.yml"
+      vars: 
         mapped_vars: "{{ mapped_vars }}"
-        job_template_id: "{{ job_template_id }}"
+
+    - name: Lancer le job template correspondant dans Ansible Tower
+      tower_job_template:
+        name: "{{ job_template_id }}"  # Nom du job template
+        organization: "Votre_organisation"  # Remplacez par votre organisation
+        extra_vars: "{{ mapped_vars }}"
+        tower_host: "http://votre_tower_host"  # Remplacez par l'URL de votre Tower
+        tower_username: "votre_username"  # Remplacez par votre nom d'utilisateur
+        tower_password: "votre_password"  # Remplacez par votre mot de passe
+        state: present
+      register: job_template_response
+
+    - name: Afficher la réponse du job template
+      debug:
+        var: job_template_response
