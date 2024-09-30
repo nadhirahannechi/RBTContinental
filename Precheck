@@ -1,0 +1,32 @@
+---
+# main.yml dans le rôle connectivity_check
+# Ce rôle vérifie si la machine est atteignable via ping et SSH avant de lancer d'autres tâches.
+
+- name: Set initial facts
+  set_fact:
+    host_reachable: false
+    exec_rc: -1
+
+- name: Validate connection to {{ affected_host }}
+  ansible.builtin.ping:
+  delegate_to: "{{ affected_host }}"
+  register: ping_result
+  ignore_errors: yes
+  ignore_unreachable: yes
+
+- name: Check SSH connectivity if ping succeeded
+  ansible.builtin.command: "echo 'SSH is reachable'"
+  delegate_to: "{{ affected_host }}"
+  register: ssh_result
+  when: ping_result.ping == "pong"
+  ignore_errors: yes
+
+- name: Set host as reachable if both ping and SSH succeed
+  set_fact:
+    host_reachable: true
+  when: ssh_result.rc == 0
+
+- name: Fail the task if the host is unreachable
+  fail:
+    msg: "Connection failed: Unable to reach {{ affected_host }} via ping or SSH."
+  when: not host_reachable
