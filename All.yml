@@ -94,5 +94,18 @@
       
       regex_replace('^(\d)(\d{2})(\d{2})(\d{2})_.*$', '\\1.\\2.\\3-\\4') }}"
       regex_replace('^0*(\\d)(\\d{2})(\\d{2})(\\d{2}).*$', '\\1.\\2.\\3-\\4') }}"
+    - name: Extraire la partie majeure, mineure et corrective
+      set_fact:
+        current_version_parts: "{{ current_version.split('-')[0].split('.') }}"
+        target_version_parts: "{{ target_version.split('-')[0].split('.') }}"
 
+    - name: Déterminer si une mise à niveau est nécessaire
+      set_fact:
+        is_upgrade_needed: "{{ (current_version_parts[0] | int < target_version_parts[0] | int) or
+                               (current_version_parts[0] | int == target_version_parts[0] | int and current_version_parts[1] | int < target_version_parts[1] | int) or
+                               (current_version_parts[0] | int == target_version_parts[0] | int and current_version_parts[1] | int == target_version_parts[1] | int and current_version_parts[2] | int < target_version_parts[2] | int) }}"
+
+    - name: Afficher le résultat de la comparaison
+      debug:
+        msg: "Une mise à niveau est nécessaire : {{ is_upgrade_needed }}"
 
