@@ -1,60 +1,57 @@
+
 ---
-- name: Upgrade IBM MQ Client
-  hosts: all
-  become: true
-  tasks:
-    - name: Vérifier les gestionnaires de files d'attente
-      command: ls /var/mqm/qmgrs
-      register: qmgrs_output
+- name: Vérifier les gestionnaires de files d'attente
+  command: ls /var/mqm/qmgrs
+  register: qmgrs_output
 
-    - name: Déterminer si l'output permet l'upgrade
+- name: Déterminer si l'output permet l'upgrade
+  set_fact:
+    can_upgrade: false
+  when: (qmgrs_output.stdout | length > 0) and ('@SYSTEM' not in qmgrs_output.stdout)
+
+- name: Afficher un message si le serveur est actif
+  debug:
+    msg: "Impossible de procéder à l'upgrade car un gestionnaire de files d'attente actif est présent : {{ qmgrs_output.stdout }}"
+  when: (qmgrs_output.stdout | length > 0) and ('@SYSTEM' not in qmgrs_output.stdout)
+
+- name: Stopper l'exécution si un gestionnaire actif est présent
+  fail:
+    msg: "L'upgrade ne peut pas être effectué car des gestionnaires de files d'attente actifs sont présents : {{ qmgrs_output.stdout }}"
+  when: (qmgrs_output.stdout | length > 0) and ('@SYSTEM' not in qmgrs_output.stdout)
+
+- name: Continuer avec l'upgrade si l'output est vide ou contient seulement '@SYSTEM'
+  when: (qmgrs_output.stdout | length == 0) or (qmgrs_output.stdout == '@SYSTEM')
+  block:
+    - name: Vérification de la version du client installé
+      command: yum list installed | grep MQ
+      register: mq_version_output
+
+    - name: Vérifier si une mise à jour est nécessaire
       set_fact:
-        can_upgrade: false
-      when: (qmgrs_output.stdout | length > 0) and ('@SYSTEM' not in qmgrs_output.stdout)
+        upgrade_needed: true
+      when: "mq_version_output.stdout | version_compare(target_version, '<')"
 
-    - name: Afficher un message si le serveur est actif
+    - name: Afficher un message si une mise à jour est nécessaire
       debug:
-        msg: "Impossible de procéder à l'upgrade car un gestionnaire de files d'attente actif est présent : {{ qmgrs_output.stdout }}"
-      when: (qmgrs_output.stdout | length > 0) and ('@SYSTEM' not in qmgrs_output.stdout)
+        msg: "Mise à jour nécessaire, version actuelle : {{ mq_version_output.stdout }}"
+      when: upgrade_needed
 
-    - name: Stopper l'exécution si un gestionnaire actif est présent
-      fail:
-        msg: "L'upgrade ne peut pas être effectué car des gestionnaires de files d'attente actifs sont présents : {{ qmgrs_output.stdout }}"
-      when: (qmgrs_output.stdout | length > 0) and ('@SYSTEM' not in qmgrs_output.stdout)
+    - name: Téléchargement du script d'installation
+      command: wget http://mqm-repos:1111/package/scripts/IBM_MQSeries_09030016_Linux_100.InstallClient.sh -q
+      when: upgrade_needed
 
-    - name: Continuer avec l'upgrade si l'output est vide ou contient seulement '@SYSTEM'
-      when: (qmgrs_output.stdout | length == 0) or (qmgrs_output.stdout == '@SYSTEM')
-      block:
-        - name: Vérification de la version du client installé
-          command: yum list installed | grep MQ
-          register: mq_version_output
+    - name: Rendre le script exécutable
+      command: chmod +x IBM_MQSeries_09030016_Linux_100.InstallClient.sh
+      when: upgrade_needed
 
-        - name: Vérifier si une mise à jour est nécessaire
-          set_fact:
-            upgrade_needed: false
-          when: "mq_version_output.stdout | version_compare(target_version, '<')"
+    - name: Lancement de l'installation
+      command: ./IBM_MQSeries_09030016_Linux_100.InstallClient.sh
+      when: upgrade_needed
 
-        - name: Afficher un message si une mise à jour est nécessaire
-          debug:
-            msg: "Mise à jour nécessaire, version actuelle : {{ mq_version_output.stdout }}"
-          when: upgrade_needed
+    - name: Vérification de la version après l'upgrade
+      command: yum list installed | grep MQ
+      register: new_mq_version_output
 
-        - name: Téléchargement du script d'installation
-          command: wget http://mqm-repos:1111/package/scripts/IBM_MQSeries_09030016_Linux_100.InstallClient.sh -q
-          when: upgrade_needed
-
-        - name: Rendre le script exécutable
-          command: chmod +x IBM_MQSeries_09030016_Linux_100.InstallClient.sh
-          when: upgrade_needed
-
-        - name: Lancement de l'installation
-          command: ./IBM_MQSeries_09030016_Linux_100.InstallClient.sh
-          when: upgrade_needed
-
-        - name: Vérification de la version après l'upgrade
-          command: yum list installed | grep MQ
-          register: new_mq_version_output
-
-        - name: Afficher la nouvelle version installée
-          debug:
-            msg: "Nouvelle version installée : {{ new_mq_version_output.stdout }}"
+    - name: Afficher la nouvelle version installée
+      debug:
+        msg: "Nouvelle version installée : {{ new_mq_version_output.stdout }}"
