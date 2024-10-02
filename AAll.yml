@@ -1,0 +1,86 @@
+---
+- name: Vérifier les gestionnaires de files d'attente
+  command: ls /var/mqm/qmgrs
+  register: qmgrs_output
+
+- name: Déterminer si l'output permet l'upgrade
+  set_fact:
+    can_upgrade: false
+  when: (qmgrs_output.stdout | length > 0) and ('@SYSTEM' not in qmgrs_output.stdout)
+
+- name: Stopper l'exécution si un gestionnaire actif est présent
+  fail:
+    msg: "L'upgrade ne peut pas être effectué car des gestionnaires de files d'attente actifs sont présents : {{ qmgrs_output.stdout }}"
+  when: (qmgrs_output.stdout | length > 0) and ('@SYSTEM' not in qmgrs_output.stdout)
+
+- name: Continuer avec l'upgrade si l'output est vide ou contient seulement '@SYSTEM'
+  when: (qmgrs_output.stdout | length == 0) or (qmgrs_output.stdout == '@SYSTEM')
+  block:
+    - name: Vérification de la version installée
+      command: yum list installed | grep MQSeriesRuntime
+      register: mq_version_output
+
+    - name: Extraire la version précédente
+      set_fact:
+        previous_version: "{{ mq_version_output.stdout | regex_search('([0-9]+\\.[0-9]+\\.[0-9]+)') }}"
+      when: mq_version_output.stdout is defined
+
+    - name: Vérifier si une mise à jour est nécessaire
+      set_fact:
+        upgrade_needed: true
+      when: "previous_version is defined and previous_version | version_compare(target_version, '<')"
+
+    - name: Afficher la version actuelle
+      debug:
+        msg: "Version actuelle installée : {{ previous_version }}"
+
+    - name: Création du répertoire temporaire
+      command: mkdir -p {{ mount_point }}
+      become: true
+
+    - name: Création d'un volume logique
+      command: lvcreate --wipesignatures n -n {{ lv_name }} -L {{ lv_size }} /dev/{{ vg_name }}
+      become: true
+      ignore_errors: true
+
+    - name: Formatage du volume logique
+      command: mkfs -t ext4 -v /dev/{{ vg_name }}/{{ lv_name }}
+      become: true
+
+    - name: Montage du volume logique
+      command: mount /dev/{{ vg_name }}/{{ lv_name }} {{ mount_point }}
+      become: true
+
+    - name: Téléchargement du script d'installation
+      command: wget http://mqm-repos:1111/package/scripts/IBM_MQSeries_09030016_Linux_100.InstallClient.sh -q
+      when: upgrade_needed
+
+    - name: Rendre le script exécutable
+      command: chmod +x {{ mount_point }}/IBM_MQSeries_09030016_Linux_100.InstallClient.sh
+      when: upgrade_needed
+
+    - name: Lancement de l'installation
+      command: {{ mount_point }}/IBM_MQSeries_09030016_Linux_100.InstallClient.sh
+      when: upgrade_needed
+
+    - name: Vérification de la version après l'upgrade
+      command: yum list installed | grep MQSeriesRuntime
+      register: new_mq_version_output
+
+    - name: Extraire la nouvelle version installée
+      set_fact:
+        new_version: "{{ new_mq_version_output.stdout | regex_search('([0-9]+\\.[0-9]+\\.[0-9]+)') }}"
+
+    - name: Afficher la nouvelle version installée
+      debug:
+        msg: "Nouvelle version installée : {{ new_version }}"
+
+    - name: Désactiver l'ancienne version (unset)
+      command: /apps/mqm/{{ previous_version }}/bin/setmqinst -x -n {{ previous_version }}
+      become: true
+      when: previous_version is defined
+
+    - name: Activer la nouvelle version (set)
+      command: /apps/mqm/{{ new_version }}/bin/setmqinst -i -n {{ new_version }}
+      become: true
+      when: upgrade_needed
