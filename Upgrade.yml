@@ -1,57 +1,60 @@
 ---
-- name: Vérification si MQ Server est installé
-  command: yum list installed | grep MQ
-  register: mq_version_check
-  ignore_errors: true
-
-- name: Vérifier si le serveur MQ est installé
-  fail:
-    msg: "Une version de serveur MQ est déjà installée. Veuillez vérifier."
-  when: mq_version_check.rc == 0
-
-- name: Vérification de la version actuelle du client MQ
-  command: yum list installed | grep MQ
-  register: installed_version
-
-- name: Déterminer la version cible pour l'upgrade
-  set_fact:
-    target_version: "09030017"  # Remplacez ceci par la version cible souhaitée
-
-- name: Déterminer la version installée à partir du résultat
-  set_fact:
-    current_version: "{{ installed_version.stdout | regex_search('MQ (.+)', '\\1') }}"
-
-- name: Afficher la version actuelle
-  debug:
-    msg: "Version actuelle installée: {{ current_version }}"
-
-- name: Comparer la version installée avec la version cible
-  fail:
-    msg: "La version actuelle est supérieure ou égale à la version cible. Upgrade non nécessaire."
-  when: current_version is version(target_version, '>=')
-
-- name: Télécharger le package d'upgrade
-  get_url:
-    url: "http://mqm-repos:1111/package/scripts/IBM_MQSeries_{{ target_version }}.Linux_100.InstallClient.sh"
-    dest: "/tmp/IBM_MQSeries_{{ target_version }}.Linux_100.InstallClient.sh"
-  register: download_result
-
-- name: Rendre le script exécutable
-  command: chmod +x /tmp/IBM_MQSeries_{{ target_version }}.Linux_100.InstallClient.sh
-  when: download_result.changed
-
-- name: Exécution du script d'upgrade
-  command: "/tmp/IBM_MQSeries_{{ target_version }}.Linux_100.InstallClient.sh"
+- name: Upgrade IBM MQ Client
+  hosts: all
   become: true
+  tasks:
+    - name: Vérifier les gestionnaires de files d'attente
+      command: ls /var/mqm/qmgrs
+      register: qmgrs_output
 
-- name: Vérification de la version après upgrade
-  command: yum list installed | grep MQ
-  register: post_upgrade_version
+    - name: Déterminer si l'output permet l'upgrade
+      set_fact:
+        can_upgrade: false
+      when: (qmgrs_output.stdout | length > 0) and ('@SYSTEM' not in qmgrs_output.stdout)
 
-- name: Déterminer la version installée après l'upgrade
-  set_fact:
-    post_upgrade_current_version: "{{ post_upgrade_version.stdout | regex_search('MQ (.+)', '\\1') }}"
+    - name: Afficher un message si le serveur est actif
+      debug:
+        msg: "Impossible de procéder à l'upgrade car un gestionnaire de files d'attente actif est présent : {{ qmgrs_output.stdout }}"
+      when: (qmgrs_output.stdout | length > 0) and ('@SYSTEM' not in qmgrs_output.stdout)
 
-- name: Affichage de la version après upgrade
-  debug:
-    msg: "Version après upgrade: {{ post_upgrade_current_version }}"
+    - name: Stopper l'exécution si un gestionnaire actif est présent
+      fail:
+        msg: "L'upgrade ne peut pas être effectué car des gestionnaires de files d'attente actifs sont présents : {{ qmgrs_output.stdout }}"
+      when: (qmgrs_output.stdout | length > 0) and ('@SYSTEM' not in qmgrs_output.stdout)
+
+    - name: Continuer avec l'upgrade si l'output est vide ou contient seulement '@SYSTEM'
+      when: (qmgrs_output.stdout | length == 0) or (qmgrs_output.stdout == '@SYSTEM')
+      block:
+        - name: Vérification de la version du client installé
+          command: yum list installed | grep MQ
+          register: mq_version_output
+
+        - name: Vérifier si une mise à jour est nécessaire
+          set_fact:
+            upgrade_needed: false
+          when: "mq_version_output.stdout | version_compare(target_version, '<')"
+
+        - name: Afficher un message si une mise à jour est nécessaire
+          debug:
+            msg: "Mise à jour nécessaire, version actuelle : {{ mq_version_output.stdout }}"
+          when: upgrade_needed
+
+        - name: Téléchargement du script d'installation
+          command: wget http://mqm-repos:1111/package/scripts/IBM_MQSeries_09030016_Linux_100.InstallClient.sh -q
+          when: upgrade_needed
+
+        - name: Rendre le script exécutable
+          command: chmod +x IBM_MQSeries_09030016_Linux_100.InstallClient.sh
+          when: upgrade_needed
+
+        - name: Lancement de l'installation
+          command: ./IBM_MQSeries_09030016_Linux_100.InstallClient.sh
+          when: upgrade_needed
+
+        - name: Vérification de la version après l'upgrade
+          command: yum list installed | grep MQ
+          register: new_mq_version_output
+
+        - name: Afficher la nouvelle version installée
+          debug:
+            msg: "Nouvelle version installée : {{ new_mq_version_output.stdout }}"
