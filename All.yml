@@ -109,3 +109,28 @@
       debug:
         msg: "Une mise à niveau est nécessaire : {{ is_upgrade_needed }}"
 
+
+
+
+
+            - name: Extraire les parties de la version actuelle
+      set_fact:
+        current_version_parts: "{{ current_version.split('-') }}"
+        current_main_version: "{{ current_version_parts[0] }}"
+        current_suffix_version: "{{ current_version_parts[1] | default('0') | int }}"
+
+    - name: Extraire les parties de la version cible
+      set_fact:
+        target_version_parts: "{{ target_version.split('-') }}"
+        target_main_version: "{{ target_version_parts[0] }}"
+        target_suffix_version: "{{ target_version_parts[1] | default('0') | int }}"
+
+    - name: Comparer les versions
+      set_fact:
+        is_upgrade_needed: >-
+          {{
+            (current_main_version < target_main_version) or
+            (current_main_version == target_main_version and
+             (current_suffix_version < target_suffix_version))
+          }}
+
