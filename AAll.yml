@@ -84,3 +84,6 @@
       command: /apps/mqm/{{ new_version }}/bin/setmqinst -i -n {{ new_version }}
       become: true
       when: upgrade_needed
+
+      regex_replace('^0*([0-9]+)0*([0-9]+)0*([0-9]+)([0-9]+)_.*', '\\1.\\2.\\3-\\4') | regex_replace('^0+', '') }}"
+
