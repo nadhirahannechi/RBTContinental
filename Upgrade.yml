@@ -1,0 +1,57 @@
+---
+- name: Vérification si MQ Server est installé
+  command: yum list installed | grep MQ
+  register: mq_version_check
+  ignore_errors: true
+
+- name: Vérifier si le serveur MQ est installé
+  fail:
+    msg: "Une version de serveur MQ est déjà installée. Veuillez vérifier."
+  when: mq_version_check.rc == 0
+
+- name: Vérification de la version actuelle du client MQ
+  command: yum list installed | grep MQ
+  register: installed_version
+
+- name: Déterminer la version cible pour l'upgrade
+  set_fact:
+    target_version: "09030017"  # Remplacez ceci par la version cible souhaitée
+
+- name: Déterminer la version installée à partir du résultat
+  set_fact:
+    current_version: "{{ installed_version.stdout | regex_search('MQ (.+)', '\\1') }}"
+
+- name: Afficher la version actuelle
+  debug:
+    msg: "Version actuelle installée: {{ current_version }}"
+
+- name: Comparer la version installée avec la version cible
+  fail:
+    msg: "La version actuelle est supérieure ou égale à la version cible. Upgrade non nécessaire."
+  when: current_version is version(target_version, '>=')
+
+- name: Télécharger le package d'upgrade
+  get_url:
+    url: "http://mqm-repos:1111/package/scripts/IBM_MQSeries_{{ target_version }}.Linux_100.InstallClient.sh"
+    dest: "/tmp/IBM_MQSeries_{{ target_version }}.Linux_100.InstallClient.sh"
+  register: download_result
+
+- name: Rendre le script exécutable
+  command: chmod +x /tmp/IBM_MQSeries_{{ target_version }}.Linux_100.InstallClient.sh
+  when: download_result.changed
+
+- name: Exécution du script d'upgrade
+  command: "/tmp/IBM_MQSeries_{{ target_version }}.Linux_100.InstallClient.sh"
+  become: true
+
+- name: Vérification de la version après upgrade
+  command: yum list installed | grep MQ
+  register: post_upgrade_version
+
+- name: Déterminer la version installée après l'upgrade
+  set_fact:
+    post_upgrade_current_version: "{{ post_upgrade_version.stdout | regex_search('MQ (.+)', '\\1') }}"
+
+- name: Affichage de la version après upgrade
+  debug:
+    msg: "Version après upgrade: {{ post_upgrade_current_version }}"
