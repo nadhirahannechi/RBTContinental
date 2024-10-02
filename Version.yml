@@ -1,0 +1,9 @@
+    - name: Désactiver l'ancienne version (unset)
+      command: /apps/mqm/{{ previous_version }}/bin/setmqinst -x -n {{ previous_version }}
+      become: true
+      when: previous_version is defined
+
+    - name: Activer la nouvelle version (set)
+      command: /apps/mqm/{{ target_version }}/bin/setmqinst -i -n {{ target_version }}
+      become: true
+      when: upgrade_needed
