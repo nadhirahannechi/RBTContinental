@@ -1,0 +1,88 @@
+---
+# Étape 1 : Vérification de la commande `dspmq` pour détecter un serveur MQ
+
+- name: Vérifier si le serveur MQ est installé (via la commande dspmq)
+  command: dspmq
+  register: mqserver_check
+  ignore_errors: true
+
+- name: Interrompre l'upgrade si le serveur MQ est détecté
+  fail:
+    msg: "Le serveur MQ est installé. L'upgrade du client MQ ne peut pas être effectuée."
+  when: mqserver_check.rc == 0
+
+# Étape 2 : Vérification de la version actuelle de MQ Client
+
+- name: Vérifier la version actuelle de MQ Client
+  command: dspmqver -i
+  register: mqver_output
+  ignore_errors: true
+
+- name: Extraire la version actuelle de MQ Client
+  set_fact:
+    current_version: "{{ mqver_output.stdout | regex_search('Version: ([0-9\\.]+)', '\\1') }}"
+  when: mqver_output.rc == 0
+
+- name: Vérifier si la version actuelle est déjà à jour
+  fail:
+    msg: "MQ Client est déjà à la version {{ current_version }}. Upgrade non nécessaire."
+  when: current_version == version_cible
+
+# Étape 3 : Gestion des volumes logiques (LV) pour le répertoire temporaire
+
+- name: Création du Logical Volume (LV) temporaire
+  command: lvcreate --wipesignatures n -n {{ LV_TEMP }} -L {{ LV_SIZE }} /dev/{{ VG_TEMP }}
+  become: true
+  ignore_errors: true
+
+- name: Formater le LV avec mkfs
+  command: mkfs -t ext4 /dev/{{ VG_TEMP }}/{{ LV_TEMP }}
+  become: true
+  ignore_errors: true
+
+- name: Monter le LV temporaire sur {{ WORK_DIR }}
+  command: mount /dev/{{ VG_TEMP }}/{{ LV_TEMP }} {{ WORK_DIR }}
+  become: true
+
+# Étape 4 : Téléchargement et exécution de l'upgrade
+
+- name: Télécharger le script d'upgrade MQ Client
+  get_url:
+    url: "{{ url_package }}"
+    dest: "{{ WORK_DIR }}/IBM_MQSeries_{{ version_cible }}_Linux_InstallClient.sh"
+    mode: '0755'
+
+- name: Rendre le script exécutable
+  command: chmod +x "{{ WORK_DIR }}/IBM_MQSeries_{{ version_cible }}_Linux_InstallClient.sh"
+  become: true
+
+- name: Exécuter le script d'upgrade
+  command: "{{ WORK_DIR }}/IBM_MQSeries_{{ version_cible }}_Linux_InstallClient.sh"
+  register: install_output
+  ignore_errors: true
+
+# Étape 5 : Vérifications après l'upgrade
+
+- name: Vérifier la version après l'upgrade
+  command: dspmqver -i
+  register: post_upgrade_version
+
+- name: Vérifier que la version après l'upgrade est correcte
+  fail:
+    msg: "L'upgrade a échoué, la version cible n'a pas été installée."
+  when: version_cible not in post_upgrade_version.stdout
+
+# Étape 6 : Nettoyage du Logical Volume et des fichiers temporaires
+
+- name: Démontage du LV temporaire
+  command: umount {{ WORK_DIR }}
+  become: true
+
+- name: Suppression du Logical Volume temporaire
+  command: lvremove -f /dev/{{ VG_TEMP }}/{{ LV_TEMP }}
+  become: true
+
+- name: Nettoyer les fichiers temporaires
+  file:
+    path: "{{ WORK_DIR }}/IBM_MQSeries_{{ version_cible }}_Linux_InstallClient.sh"
+    state: absent
