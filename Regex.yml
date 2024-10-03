@@ -2,3 +2,7 @@ Extraire la version actuelle à partir de "InstName"
   set_fact:
     current_version: "{{ mqver_output.stdout | from_json | json_query('Installations[*].InstName') | first }}"
   when: mqver_output.rc == 0
+name: Extraire la version actuelle à partir de "InstName" avec regex
+  set_fact:
+    current_version: "{{ mqver_output.stdout | regex_search('InstName\\s+.*\\s+([0-9]+\\.[0-9]+\\.[0-9]+-[0-9]+)', '\\1') }}"
+  when: mqver_output.rc == 0
