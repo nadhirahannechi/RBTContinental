@@ -1,0 +1,7 @@
+Bonjour à tous,
+
+Je voulais vous informer que j’ai rencontré des problèmes en essayant d’exécuter les commandes dspmqver et dspmq. Bien que IBM MQ soit installé sur nos machines, les commandes retournent “command not found”.
+
+Il semble que le binaire ou le chemin ne soit pas configuré correctement, ce qui indique qu’il y a des configurations manquantes dans les spécifications. Cela empêche l’exécution correcte des commandes par l’utilisateur root.
+
+Si quelqu’un a des idées ou des suggestions pour résoudre ce problème, merci de les partager.
