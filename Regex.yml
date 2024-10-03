@@ -1,0 +1,4 @@
+Extraire la version actuelle à partir de "InstName"
+  set_fact:
+    current_version: "{{ mqver_output.stdout | from_json | json_query('Installations[*].InstName') | first }}"
+  when: mqver_output.rc == 0
