@@ -1,0 +1,81 @@
+---
+# tasks/main.yml
+
+# Étape 1 : Création du volume logique et du système de fichiers
+
+- name: Créer le groupe de volumes (VG) si nécessaire
+  command: vgcreate mq_vg /dev/sdb
+  when: ansible_facts.devices['sdb'].exists == true
+  ignore_errors: true
+
+- name: Créer le volume logique (LV) pour MQ
+  lvol:
+    vg: mq_vg
+    lv: mq_lv
+    size: 10G
+  when: ansible_facts.devices['sdb'].exists == true
+
+- name: Formater le volume en ext4
+  filesystem:
+    fstype: ext4
+    dev: "/dev/mq_vg/mq_lv"
+  when: ansible_facts.devices['sdb'].exists == true
+
+- name: Créer le répertoire de montage pour MQ
+  file:
+    path: /mnt/mqclient
+    state: directory
+    mode: '0755'
+
+- name: Monter le volume logique sur /mnt/mqclient
+  mount:
+    path: /mnt/mqclient
+    src: "/dev/mq_vg/mq_lv"
+    fstype: ext4
+    state: mounted
+
+# Étape 2 : Téléchargement du package et préparation pour l'upgrade
+
+- name: Télécharger le package d'upgrade MQ Client
+  get_url:
+    url: "{{ url_package }}"
+    dest: "/mnt/mqclient/IBM_MQSeries_{{ target_version }}_Linux_InstallClient.sh"
+    mode: '0755'
+
+# Étape 3 : Installation/upgrade du MQ Client
+
+- name: Installer/mettre à jour le MQ Client
+  command: "/mnt/mqclient/IBM_MQSeries_{{ target_version }}_Linux_InstallClient.sh"
+  register: install_output
+  ignore_errors: true
+
+# Étape 4 : Gestion des permissions
+
+- name: Appliquer les droits nécessaires sur le répertoire d'installation
+  file:
+    path: /mnt/mqclient
+    state: directory
+    mode: '0775'
+    recurse: true
+
+# Étape 5 : Vérification post-installation
+
+- name: Vérifier la version après l'upgrade
+  command: dspmqver -i
+  register: post_upgrade_version
+
+- name: Extraire la version après l'upgrade
+  set_fact:
+    new_version: "{{ post_upgrade_version.stdout | regex_search('InstName:\\s*([0-9]+)', '\\1') | int }}"
+
+- name: Vérifier que la version après l'upgrade est correcte
+  fail:
+    msg: "L'upgrade a échoué. La version cible n'a pas été installée correctement."
+  when: new_version < target_version
+
+# Étape 6 : Nettoyage
+
+- name: Supprimer le fichier d'installation
+  file:
+    path: "/mnt/mqclient/IBM_MQSeries_{{ target_version }}_Linux_InstallClient.sh"
+    state: absent
