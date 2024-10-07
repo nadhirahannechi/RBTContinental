@@ -1,0 +1,11 @@
+- name: Exécuter dspmqver pour récupérer les informations
+  command: dspmqver -i
+  register: mqver_output
+
+- name: Extraire la version de la deuxième installation
+  set_fact:
+    second_version: "{{ mqver_output.stdout | regex_search('InstName: Installation2.*?Version: ([0-9\\.]+)', '\\1') }}"
+  
+- name: Afficher la version de la deuxième installation
+  debug:
+    msg: "La version de la deuxième installation est : {{ second_version }}"
