@@ -1,0 +1,8 @@
+J’ai rencontré un problème lors de l’installation des packages MQ sur un serveur avec OS version 9.
+
+	•	Le package 09030016 ne s’installe pas car il demande une version d’OS inférieure à 9.
+	•	Le package 09030017, quant à lui, nécessite une version d’OS supérieure à 9 et s’installe correctement.
+
+Du coup, je ne peux pas installer le package 09030016 pour ensuite tester l’upgrade vers 09030017 sur ce serveur.
+
+Aurais-tu une solution pour contourner ce problème ou une autre suggestion pour tester l’upgrade ?
