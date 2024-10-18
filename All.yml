@@ -1,4 +1,49 @@
 ---
+
+
+To help you get started with Molecule in Ansible, you can refer to this sample molecule.yml file from an Ansible role example on GitHub. Here’s a quick breakdown of the key sections:
+
+	1.	Dependency Management: This section uses Ansible Galaxy for role management.
+
+dependency:
+  name: galaxy
+
+
+	2.	Driver: Docker is the driver used to manage instances.
+
+driver:
+  name: docker
+
+
+	3.	Platforms: Defines the platforms on which the test will run, such as CentOS 7 in this example.
+
+platforms:
+  - name: instance-${TOX_ENVNAME}
+    image: ${MOLECULE_DISTRO:-'centos:7'}
+    command: /sbin/init
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: true
+
+
+	4.	Provisioner: Ansible is used as the provisioner, which manages the playbooks and roles.
+
+provisioner:
+  name: ansible
+  lint:
+    name: ansible-lint
+
+
+	5.	Verifier: Testinfra is used for verifying the correctness of the role.
+
+verifier:
+  name: testinfra
+  lint:
+    name: flake8
+
+
+
+This file provides a solid base for setting up a test environment for your Ansible roles using Docker containers. You can adapt it according to your project needs. For more detailed configuration options, you can check out Ansible’s documentation on Molecule ￼ ￼.
 - name: Vérifier les gestionnaires de files d'attente
   command: ls /var/mqm/qmgrs
   register: qmgrs_output
