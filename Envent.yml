@@ -1,0 +1,27 @@
+---
+- name: Initialize or display event data based on final_ack
+  block:
+    - name: Initialize variables when final_ack is false
+      set_fact:
+        precheck_code: 0
+        precheck_msg: "Precheck not executed"
+        mapper_code: 0
+        mapper_msg: "Mapper not executed"
+        product_code: 0
+        product_msg: "Product not executed"
+        final_code: 0
+        final_msg: "Execution in progress"
+        roles_used: []
+        execution_status: []
+      when: final_ack == false
+
+    - name: Display variables at the end when final_ack is true
+      debug:
+        msg:
+          - "Final Return Code: {{ final_code }}"
+          - "Precheck Return Code: {{ precheck_code }} - Message: {{ precheck_msg }}"
+          - "Mapper Return Code: {{ mapper_code }} - Message: {{ mapper_msg }}"
+          - "Product Return Code: {{ product_code }} - Message: {{ product_msg }}"
+          - "Roles used: {{ roles_used }}"
+          - "Execution status: {{ execution_status }}"
+      when: final_ack == true
