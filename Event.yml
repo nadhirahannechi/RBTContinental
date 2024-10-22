@@ -1,0 +1,69 @@
+---
+- name: Start event wrapper
+  debug:
+    msg: "Event wrapper started for job execution"
+
+- name: Capture precheck event
+  include_role:
+    name: precheck
+  when: precheck_enabled | default(true)
+
+- name: Capture mapper event
+  include_role:
+    name: mapper
+  vars:
+    config_file: "mapper_config.yml"
+
+- name: Capture the second job template event (launch and wait)
+  block:
+    - name: Launch second Job Template
+      uri:
+        url: "{{ ansible_tower_url }}/api/v2/job_templates/{{ second_job_template_id }}/launch/"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ ansible_tower_token }}"
+        status_code: 202
+      register: second_job_launch
+
+    - name: Wait for Second Job Template completion
+      uri:
+        url: "{{ second_job_launch.json.url }}"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ ansible_tower_token }}"
+      register: second_job_status
+      until: second_job_status.json.status == "successful"
+      retries: 20
+      delay: 60
+
+- name: Capture post-execution events
+  include_role:
+    name: postcheck
+  when: postcheck_enabled | default(true)
+
+- name: Final event and return code
+  block:
+    - name: Get results of the second job template
+      uri:
+        url: "{{ second_job_status.json.result_url }}"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ ansible_tower_token }}"
+      register: second_job_result
+
+    - name: Set results for display
+      set_fact:
+        final_code: "{{ second_job_result.json.rc }}"
+        final_msg: "{{ second_job_result.json.msg }}"
+        executed_role: "{{ second_job_result.json.role_name }}"
+
+    - name: Display final return codes and executed role
+      debug:
+        msg:
+          - "Final Code: {{ final_code }}"
+          - "Final Message: {{ final_msg }}"
+          - "Executed Role: {{ executed_role }}"
+
+- name: End event wrapper
+  debug:
+    msg: "Event wrapper completed"
