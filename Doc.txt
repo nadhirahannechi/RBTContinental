@@ -1,0 +1,37 @@
+Pour intégrer l’idée que le mapping des variables est basé sur un ID envoyé par ServiceNow afin de sélectionner dynamiquement le rôle approprié, voici une description actualisée du framework :
+
+Documentation du Framework de Request Automation avec Intégration ServiceNow
+
+1. Introduction au Framework
+
+	•	Objectif : Le framework est conçu pour être générique, extensible et modulaire, permettant l’intégration de divers rôles produits (comme MQSeries, DB2, etc.) tout en assurant une gestion efficace des variables et des codes de retour.
+	•	Intégration avec ServiceNow : Le framework est déclenché via ServiceNow, qui envoie un ID spécifique et des variables non normalisées. Cet ID détermine le rôle produit à lancer et oriente le processus de mapping des variables.
+
+2. Fonctionnalités Clés
+
+	•	Mapping Dynamique Basé sur l’ID de ServiceNow : Le framework utilise l’ID envoyé par ServiceNow pour sélectionner le rôle produit approprié et mapper les variables en conséquence. Chaque rôle peut ainsi recevoir les données nécessaires sous un format compatible.
+	•	Pré-vérification de la Connectivité : Avant l’exécution du rôle principal, une vérification de connectivité est effectuée pour s’assurer de l’accessibilité des serveurs concernés.
+	•	Gestion des Codes de Retour et Rapport Final : En utilisant un rôle event wrapper, le framework enregistre les codes de retour à chaque étape et génère un fichier JSON final contenant un rapport détaillé.
+
+3. Workflow du Framework
+
+	•	Étape 1 : Déclenchement par ServiceNow
+	•	Le playbook principal est initié par ServiceNow avec un ID spécifique et des variables non normalisées.
+	•	Étape 2 : Sélection Dynamique du Rôle et Mapping des Variables
+	•	En fonction de l’ID envoyé, le rôle mapper sélectionne dynamiquement le rôle produit et mappe les variables. Ce processus assure que chaque rôle reçoit les données formatées dont il a besoin.
+	•	Étape 3 : Pré-vérification de la Connectivité
+	•	Le rôle pre-check effectue une vérification de connectivité sur les serveurs affectés pour éviter les échecs d’exécution.
+	•	Étape 4 : Exécution du Rôle Sélectionné avec Event Wrapper
+	•	Un job template distinct exécute eventwrapper.yml, qui lance le rôle produit sélectionné avec les variables mappées. L’event wrapper enregistre les données pour chaque étape.
+	•	Étape 5 : Gestion des Codes de Retour et Génération du Rapport JSON
+	•	Le rôle event wrapper compile les résultats et les codes de retour, puis génère un fichier JSON avec un résumé des données d’exécution, y compris le playbook utilisé, le code de retour, et les messages associés.
+
+4. Avantages du Framework pour l’Intégration des Rôles Produits
+
+	•	Flexibilité grâce au Mapping Dynamique : Le mapping basé sur l’ID ServiceNow permet une sélection automatique du rôle produit, rendant le framework adaptable à différents cas d’utilisation.
+	•	Séparation des Étapes avec l’Event Wrapper : En utilisant eventwrapper.yml pour encapsuler chaque étape, le processus devient plus structuré et facile à monitorer.
+	•	Extensibilité : Le framework est conçu pour intégrer facilement de nouveaux rôles produits sans altérer sa structure principale.
+
+5. Conclusion
+
+	•	Ce framework apporte une solution complète et adaptable pour gérer divers rôles produits avec des données provenant de ServiceNow. En se basant sur l’ID fourni pour sélectionner et mapper les variables dynamiquement, il offre une intégration fluide et une exécution maîtrisée pour chaque rôle produit.
