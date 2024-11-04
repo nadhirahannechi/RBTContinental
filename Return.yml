@@ -1,0 +1,64 @@
+- name: Main Playbook
+  hosts: localhost
+  gather_facts: no
+  vars_files:
+    - vars/mapping-vars.yml
+
+  tasks:
+    - name: Initialize event wrapper variables
+      include_role:
+        name: ansible-role-event-global-eventwrapper
+        tasks_from: "initialize"  # Initialisation gérée dans le rôle
+
+    - name: Test connectivity to affected host
+      include_role:
+        name: pre-check
+      vars:
+        affected_host: "{{ variable1 }}"
+
+    - name: Map variables dynamically for selected role
+      include_role:
+        name: mapper
+      vars:
+        job_template_id: "{{ job_template_id }}"
+
+- hosts: "{{ affected_host }}"
+  gather_facts: no
+  tasks:
+    - name: Run MQ Role on affected host
+      include_role:
+        name: ibm_mqseries_products_linux
+      vars:
+        action: "install_mq"
+        exec_success: false
+        exec_changed: false
+        exec_message: "Installing MQ on affected host"
+        exec_rc: 0
+        role_used: "MQ"
+
+    - name: Save results to variables on localhost
+      set_fact:
+        mq_exec_success: "{{ exec_success }}"
+        mq_exec_changed: "{{ exec_changed }}"
+        mq_exec_message: "{{ exec_message }}"
+        mq_exec_rc: "{{ exec_rc }}"
+      delegate_to: localhost
+
+- hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Finalize event wrapper and display result
+      include_role:
+        name: ansible-role-event-global-eventwrapper
+      vars:
+        final_ack: true
+        action: "finalize"
+        exec_success: "{{ mq_exec_success }}"
+        exec_changed: "{{ mq_exec_changed }}"
+        exec_message: "{{ mq_exec_message }}"
+        exec_rc: "{{ mq_exec_rc }}"
+        role_used: "{{ role_used }}"
+
+    - name: Display final event wrapper data
+      debug:
+        var: event_wrapper_data
