@@ -1,0 +1,12 @@
+Voici un message que tu peux utiliser :
+
+Bonjour,
+
+Je vous informe que j’ai modifié le rôle d’installation en ajoutant une partie de test à la fin. Cela permettra de garantir que l’installation a été correctement effectuée et que tout est propre. En effet, il arrivait parfois que le rôle indique que l’installation était réussie alors qu’elle ne l’était pas sur le serveur.
+
+Merci de votre compréhension.
+
+Cordialement,
+[Votre Nom]
+
+N’hésite pas à personnaliser le message si besoin !
