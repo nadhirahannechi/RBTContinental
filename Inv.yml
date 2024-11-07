@@ -1,0 +1,56 @@
+---
+- name: Starter - Vérification et ajout dans l'inventaire AAP
+  hosts: localhost
+  gather_facts: no
+
+  vars:
+    tower_host: "https://your-aap-url.com"  # URL de votre instance AAP
+    tower_token: "your-api-token"          # Jeton API d'authentification
+    inventory_id: 123                      # ID de l'inventaire cible dans AAP
+    group_name: "target_group"             # Groupe cible pour le serveur
+    affected_host: "your-server-to-check"  # Nom ou IP du serveur à vérifier
+
+  tasks:
+    - name: Vérifier si le serveur existe dans l'inventaire AAP
+      uri:
+        url: "{{ tower_host }}/api/v2/inventories/{{ inventory_id }}/hosts/"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ tower_token }}"
+        return_content: yes
+      register: inventory_data
+
+    - name: Extraire la liste des hôtes existants
+      set_fact:
+        existing_hosts: "{{ inventory_data.json.results | map(attribute='name') | list }}"
+
+    - name: Vérifier si le serveur est déjà présent
+      set_fact:
+        server_exists: "{{ affected_host in existing_hosts }}"
+
+    - name: Ajouter le serveur à l'inventaire AAP s'il n'existe pas
+      uri:
+        url: "{{ tower_host }}/api/v2/hosts/"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ tower_token }}"
+          Content-Type: "application/json"
+        body: >
+          {
+            "name": "{{ affected_host }}",
+            "inventory": {{ inventory_id }},
+            "enabled": true,
+            "groups": ["/api/v2/inventories/{{ inventory_id }}/groups/{{ group_name }}/"]
+          }
+        status_code: 201
+      when: not server_exists
+
+    - name: Vérification finale - Confirmer que le serveur est présent
+      fail:
+        msg: "Le serveur {{ affected_host }} n'a pas pu être ajouté à l'inventaire AAP."
+      when: not server_exists
+
+    - name: Lancer les tâches principales sur le serveur affecté
+      include_tasks: main.yml
+      vars:
+        affected_host: "{{ affected_host }}"
