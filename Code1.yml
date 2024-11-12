@@ -1,0 +1,88 @@
+---
+# pre-check.yml - Vérification avancée avec les variables rc, success, change et comment
+- name: Pre-Check Connectivity with Table-Based RC
+  hosts: localhost
+  gather_facts: no
+
+  vars:
+    exec_rc: -1  # Code de retour par défaut
+    success: false  # Indique si l'exécution est réussie
+    change: false  # Indique si un changement a eu lieu
+    comment: ""  # Commentaire détaillé sur l'état de l'exécution
+    rc_mapping:  # Tableau de correspondance des codes de retour
+      "0": {"success": true, "change": true, "comment": "Connexion réussie"}
+      "2003": {"success": false, "change": false, "comment": "Connection Error"}
+      "3001": {"success": false, "change": false, "comment": "Credential Ansible invalide"}
+      "3003": {"success": false, "change": false, "comment": "Ansible timeout"}
+
+  tasks:
+
+    - name: Initialize variables
+      set_fact:
+        exec_rc: -1
+        success: false
+        change: false
+        comment: "Initialisation des variables"
+
+    # Étape 1 : Vérification de la connectivité avec Ping
+    - name: Validate connection to {{ affected_host }} via ping
+      ansible.builtin.command:
+        cmd: "ping -c 1 -W 1 {{ affected_host }}"
+      register: ping_result
+      ignore_errors: yes
+
+    - name: Update exec_rc for ping result
+      set_fact:
+        exec_rc: "{{ ping_result.rc | int == 0 | ternary('0', '2003') }}"
+      when: ping_result is defined
+
+    # Étape 2 : Vérification du port SSH
+    - name: Check if SSH port is open on {{ affected_host }}
+      ansible.builtin.command:
+        cmd: "nc -z -w 1 {{ affected_host }} {{ ssh_port | default(22) }}"
+      register: ssh_port_check
+      ignore_errors: yes
+      when: exec_rc == "0"
+
+    - name: Update exec_rc if SSH port is closed
+      set_fact:
+        exec_rc: "2003"
+      when: ssh_port_check.rc != 0
+
+    # Étape 3 : Test de connectivité SSH
+    - name: Attempt SSH connectivity with timeout
+      ansible.builtin.command:
+        cmd: "timeout {{ ssh_timeout | default(5) }} ssh -o BatchMode=yes -o ConnectTimeout={{ ssh_timeout | default(5) }} {{ affected_host }} 'echo SSH OK'"
+      register: ssh_result
+      ignore_errors: yes
+      when: exec_rc == "0"
+
+    - name: Update exec_rc for SSH errors
+      set_fact:
+        exec_rc: "{{ ssh_result.rc | int == 0 | ternary('0', '3001') }}"
+      when: ssh_result is defined
+
+    - name: Set exec_rc for SSH timeout
+      set_fact:
+        exec_rc: "3003"
+      when: ssh_result is failed and "timed out" in ssh_result.stderr
+
+    # Étape 4 : Mise à jour des variables success, change et comment
+    - name: Map exec_rc to success, change, and comment
+      set_fact:
+        success: "{{ rc_mapping[exec_rc].success }}"
+        change: "{{ rc_mapping[exec_rc].change }}"
+        comment: "{{ rc_mapping[exec_rc].comment }}"
+      when: exec_rc in rc_mapping
+
+    # Étape 5 : Afficher les résultats
+    - name: Display final results
+      debug:
+        msg: >
+          {
+            "host": "{{ affected_host }}",
+            "exec_rc": "{{ exec_rc }}",
+            "success": "{{ success }}",
+            "change": "{{ change }}",
+            "comment": "{{ comment }}"
+          }
