@@ -1,0 +1,77 @@
+---
+# main.yml - Vérification de connectivité et gestion des retours
+
+- name: Initialize result variables
+  set_fact:
+    exec_rc: -1  # Par défaut, non défini
+    resultat_ping: "not_tested"
+    resultat_ssh: "not_tested"
+
+# Étape 1 : Test de connectivité Ping
+- name: Test ping connectivity to {{ affected_host }}
+  ansible.builtin.command:
+    cmd: "ping -c 1 -W 1 {{ affected_host }}"
+  register: ping_result
+  ignore_errors: yes
+
+- name: Update ping result and RC
+  set_fact:
+    exec_rc: "{{ 2003 if ping_result.rc != 0 else exec_rc }}"
+    resultat_ping: "{{ 'pong' if ping_result.rc == 0 else 'no_ping' }}"
+
+- name: Stop role execution if ping failed
+  fail:
+    msg: >
+      "Ping failed for host {{ affected_host }}. 
+      RC: {{ exec_rc }}."
+  when: exec_rc == 2003
+
+# Étape 2 : Vérification du port SSH (uniquement si le ping réussit)
+- name: Check if SSH port is open on {{ affected_host }}
+  ansible.builtin.command:
+    cmd: "nc -z -w 1 {{ affected_host }} {{ ssh_port }}"
+  register: ssh_port_check
+  ignore_errors: yes
+
+- name: Stop role execution if SSH port is closed
+  set_fact:
+    exec_rc: "{{ 3001 if ssh_port_check.rc != 0 else exec_rc }}"
+    resultat_ssh: "{{ 'not_connected' if ssh_port_check.rc != 0 else resultat_ssh }}"
+  when: ssh_port_check.rc != 0
+
+- name: Stop role execution if SSH port is closed
+  fail:
+    msg: >
+      "SSH port {{ ssh_port }} closed for host {{ affected_host }}.
+      RC: {{ exec_rc }}."
+  when: exec_rc == 3001
+
+# Étape 3 : Tentative de connexion SSH (uniquement si le port est ouvert)
+- name: Attempt SSH connectivity with timeout
+  ansible.builtin.command:
+    cmd: "timeout {{ ssh_timeout }} ssh -o BatchMode=yes -o ConnectTimeout={{ ssh_timeout }} {{ affected_host }} 'echo SSH OK'"
+  register: ssh_result
+  ignore_errors: yes
+
+- name: Check for SSH timeout and update RC
+  set_fact:
+    exec_rc: "{{ 3003 if ssh_result is failed and 'timed out' in ssh_result.stderr else exec_rc }}"
+    resultat_ssh: "{{ 'timeout' if ssh_result is failed and 'timed out' in ssh_result.stderr else resultat_ssh }}"
+  when: ssh_result is failed
+
+- name: Update success RC if SSH succeeded
+  set_fact:
+    exec_rc: 0
+    resultat_ssh: "connected"
+  when: ssh_result.rc == 0
+
+# Étape 4 : Final reporting
+- name: Display final results
+  debug:
+    msg: >
+      {
+        "host": "{{ affected_host }}",
+        "ping_status": "{{ resultat_ping }}",
+        "ssh_status": "{{ resultat_ssh }}",
+        "exec_rc": "{{ exec_rc }}"
+      }
