@@ -1,0 +1,46 @@
+- name: Charger le fichier de mapping
+  include_vars:
+    file: mapper.yml
+    name: mappings_data
+
+- name: Déterminer le rôle basé sur le job_template_id
+  set_fact:
+    selected_role: "{{ mappings_data.job_template_mapping[job_template_id] }}"
+  when: job_template_id in mappings_data.job_template_mapping
+
+- name: Vérifier l'existence du rôle pour le job_template_id
+  fail:
+    msg: "Aucun rôle trouvé pour le job_template_id : {{ job_template_id }}"
+    rc: 2004
+  when: selected_role is not defined
+
+- name: Vérifier et mapper les variables pour le rôle sélectionné
+  block:
+    - name: Extraire les variables spécifiques au rôle
+      set_fact:
+        role_variables: "{{ mappings_data.mappings[selected_role] | default({}) }}"
+
+    - name: Vérifier que toutes les variables nécessaires sont définies
+      fail:
+        msg: "Les variables suivantes sont manquantes pour le rôle {{ selected_role }} : {{ role_variables.keys() | difference(extra_vars.keys()) }}"
+        rc: 2006
+      when: role_variables.keys() | difference(extra_vars.keys()) | length > 0
+
+    - name: Mapper les variables dynamiquement
+      set_fact:
+        mapped_vars: "{{ role_variables | map('extract', extra_vars) | combine }}"
+  rescue:
+    - name: Gérer une erreur de mapping
+      set_fact:
+        exec_rc: 2005
+
+- name: Marquer le succès de l'exécution
+  set_fact:
+    exec_rc: 0
+  when: selected_role is defined and role_variables.keys() | difference(extra_vars.keys()) | length == 0
+
+- name: Afficher les variables mappées pour debug
+  debug:
+    msg:
+      - "Variables mappées : {{ mapped_vars | default('Aucune variable mappée') }}"
+      - "Code de retour final : {{ exec_rc }}"
