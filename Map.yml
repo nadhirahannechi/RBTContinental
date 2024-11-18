@@ -1,0 +1,49 @@
+- name: Charger le fichier de mapping
+  include_vars:
+    file: mapper.yml
+    name: mappings_data
+
+- name: Déterminer le rôle basé sur le job_template_id
+  set_fact:
+    selected_role: "{{ mappings_data.job_template_mapping[job_template_id] }}"
+  when: job_template_id in mappings_data.job_template_mapping
+
+- name: Vérifier l'existence du rôle pour le job_template_id
+  fail:
+    msg: "Aucun rôle trouvé pour le job_template_id : {{ job_template_id }}"
+    rc: 2004
+  when: selected_role is not defined
+
+- name: Vérifier que les variables requises sont définies
+  block:
+    - name: Initialiser les variables mappées
+      set_fact:
+        mapped_vars: >
+          {{
+            {
+              "variable1": mappings_data.mappings[selected_role].variable1 | default(''),
+              "variable2": mappings_data.mappings[selected_role].variable2 | default(''),
+              "variable3": mappings_data.mappings[selected_role].variable3 | default(''),
+              "variable4": mappings_data.mappings[selected_role].variable4 | default('')
+            }
+          }}
+
+    - name: Vérifier la présence des variables dans extra_vars
+      fail:
+        msg: "Les variables nécessaires pour {{ selected_role }} ne sont pas définies dans extra_vars."
+        rc: 2006
+      when: mapped_vars.values() | select('==', '') | list | length > 0
+  rescue:
+    - name: Erreur lors du mapping des variables
+      set_fact:
+        exec_rc: 2005
+
+- name: Marquer le succès de l'exécution
+  set_fact:
+    exec_rc: 0
+  when: selected_role is defined and
+        (mapped_vars.values() | select('==', '') | list | length == 0)
+
+- name: Afficher le code de retour final
+  debug:
+    msg: "Code de retour final : {{ exec_rc }}"
