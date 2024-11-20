@@ -1,0 +1,67 @@
+- name: Définir l'inventaire en fonction de l'environnement
+  set_fact:
+    inventory_id: >-
+      {% if env == "hpros" %}
+        1
+      {% elif env == "prod" %}
+        2
+      {% else %}
+        0
+      {% endif %}
+
+- name: Vérifier si l'inventaire est défini correctement
+  debug:
+    msg: "Inventaire sélectionné : {{ inventory_id }}"
+
+- name: Vérifier si le serveur existe dans l'inventaire AAP
+  uri:
+    url: "{{ tower_host }}/api/v2/inventories/{{ inventory_id }}/hosts/"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ tower_token }}"
+    return_content: yes
+  register: inventory_data
+
+- name: Extraire la liste des hôtes existants
+  set_fact:
+    existing_hosts: "{{ inventory_data.json.results | map(attribute='name') | list }}"
+
+- name: Vérifier si le serveur est déjà présent
+  set_fact:
+    server_exists: "{{ affected_host in existing_hosts }}"
+
+- name: Debug - Afficher les variables
+  debug:
+    msg: "{{ vars.variable1 }}"
+
+- name: Ajouter le serveur à l'inventaire AAP s'il n'existe pas
+  uri:
+    url: "{{ tower_host }}/api/v2/hosts/"
+    method: POST
+    headers:
+      Authorization: "Bearer {{ tower_token }}"
+      Content-Type: "application/json"
+    body: >
+      {{
+        {
+          "name": affected_host,
+          "inventory": inventory_id,
+          "enabled": true
+        } | to_json
+      }}
+  when: not server_exists
+
+- name: Lancer le job template avec l'inventaire sélectionné
+  uri:
+    url: "{{ tower_host }}/api/v2/job_templates/{{ job_template_id }}/launch/"
+    method: POST
+    headers:
+      Authorization: "Bearer {{ tower_token }}"
+      Content-Type: "application/json"
+    body: >
+      {{
+        {
+          "inventory": inventory_id
+        } | to_json
+      }}
+  when: not server_exists
