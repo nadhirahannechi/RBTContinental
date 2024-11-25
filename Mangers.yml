@@ -1,0 +1,21 @@
+- name: Charger les données cryptées du fichier CSV
+  hosts: localhost
+  gather_facts: no
+  vars:
+    csv_file: "managers.csv"
+    target_manager: "manager1"
+  tasks:
+    - name: Décrypter le fichier et charger les données
+      set_fact:
+        managers_data: "{{ lookup('csvfile', 'manager_name,url,user,password', delimiter=',', file=csv_file) }}"
+
+    - name: Trouver les informations du manager cible
+      set_fact:
+        manager_info: "{{ managers_data | selectattr('manager_name', 'equalto', target_manager) | first }}"
+
+    - name: Afficher les informations du manager cible
+      debug:
+        msg: >
+          URL: {{ manager_info.url }},
+          User: {{ manager_info.user }},
+          Password: {{ manager_info.password }}
