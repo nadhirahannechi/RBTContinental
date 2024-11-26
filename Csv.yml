@@ -1,0 +1,23 @@
+---
+- name: Lire un fichier CSV et le stocker dans une variable
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Copier le fichier CSV localement
+      copy:
+        src: ./files/data.csv
+        dest: /tmp/data.csv
+
+    - name: Lire et convertir le fichier CSV en JSON
+      command: >
+        python3 -c "import csv, json;
+                    print(json.dumps([row for row in csv.DictReader(open('/tmp/data.csv'))]))"
+      register: csv_content
+
+    - name: Stocker le contenu CSV dans une variable
+      set_fact:
+        csv_data: "{{ csv_content.stdout | from_json }}"
+
+    - name: Afficher les données CSV stockées
+      debug:
+        var: csv_data
