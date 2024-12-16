@@ -1,0 +1,5 @@
+Bonjour à tous, je vous remercie d’être présents aujourd’hui. Je vais vous présenter notre projet Request Automation, une initiative visant à automatiser la gestion des demandes unitaires et répétitives pour optimiser nos processus opérationnels.
+
+Nous aborderons dans cette présentation les différentes fonctionnalités que nous avons développées, les avancées réalisées à ce jour, ainsi que le framework que nous utilisons pour gérer l’exécution, le suivi et la fiabilisation des tâches automatisées.
+
+Nous verrons également comment ce projet peut s’intégrer à d’autres initiatives, comme la remédiation d’incidents, afin d’apporter une vision complète de nos solutions d’automatisation.”
