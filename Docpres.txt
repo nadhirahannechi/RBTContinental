@@ -1,24 +1,5 @@
-Deuxième Slide : “Contexte du Projet”
+Dans ce projet, nous avons constaté que les équipes support étaient souvent sollicitées pour des demandes répétitives à faible valeur ajoutée, provenant principalement de ServiceNow. Ces gestes concernent des interventions sur des serveurs métiers sous la responsabilité de BP2I.
 
-Contenu du slide (structure proposée) :
-	•	Origine :
-Les demandes provenant de ServiceNow concernent des gestes unitaires récurrents sur des serveurs métiers.
-	•	Problématique :
-	•	Tâches manuelles répétitives.
-	•	Perte de temps et de ressources.
-	•	Risque d’erreurs humaines.
-	•	Enjeu :
-Mettre en place une solution automatisée et fiable pour optimiser ces interventions.
+L’objectif principal est de mettre en place une solution permettant d’automatiser et traiter de bout en bout ces demandes unitaires, ce qui réduit le temps d’exécution et fiabilise les opérations.
 
-Speech associé :
-
-“Dans cette slide, je souhaite revenir sur le contexte de notre projet.
-
-Aujourd’hui, nos équipes support sont sollicitées via ServiceNow pour exécuter des gestes unitaires sur des serveurs métiers. Ces gestes, bien que simples, sont souvent répétitifs et manuels, ce qui engendre plusieurs problématiques :
-	•	Une perte de temps considérable pour les équipes.
-	•	Une mobilisation excessive des ressources humaines sur des tâches à faible valeur ajoutée.
-	•	Et un risque d’erreurs humaines qui peut impacter la qualité des interventions.
-
-L’enjeu de ce projet est donc de déployer une solution d’automatisation robuste qui nous permettra de traiter ces demandes de manière plus rapide, fiable et standardisée.”
-
-Cela présente clairement l’origine du besoin, les problèmes rencontrés et l’objectif global du projet, en préparant le terrain pour les prochaines slides.
+À terme, nous voulons robotiser ces gestes pour standardiser les processus et améliorer la qualité de service. Cela nous permettra de gagner en efficacité et de concentrer les efforts sur des tâches à plus forte valeur ajoutée.”
