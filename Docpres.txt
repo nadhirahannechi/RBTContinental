@@ -1,16 +1,13 @@
+Contenu du slide :
+	•	Conclusion :
+	•	Request Automation permet d’automatiser les processus critiques de gestion des configurations, d’installation et de mise à jour des produits via Ansible et ServiceNow, tout en garantissant une gestion centralisée des erreurs et des retours de code.
+	•	Perspectives d’Évolution :
+	•	Ajout de nouveaux produits : Mise en place de rôles pour d’autres produits comme MQSeries, Autosys, et d’autres systèmes clés.
+	•	Amélioration continue : Optimisation de la gestion des retours de code et renforcement de la sécurité des accès.
+	•	Mise en place de solutions de surveillance et remédiation : Intégration de mécanismes de surveillance (logs EFK) et de remédiation automatique des erreurs identifiées. 
+Déploiement actuel :
+	•	MQ Client : Installation, mise à jour, suppression.
+	•	Prochain déploiement : MQ Serveur et Autosys après le gel des modifications.
+Pour l’instant, nous avons réussi à déployer l’automatisation de l’installation, la mise à jour et la suppression du client MQ. Prochainement, après la période de gel, nous procéderons à la mise en place du MQ Serveur et d’Autosys.”
 
-Voici le speech mis à jour avec l’intégration de la logique où ServiceNow vérifie l’exécution à chaque étape et récupère les codes de retour :
 
-“Sur ce slide, nous détaillons le processus complet du framework qui interagit avec ServiceNow et Ansible. Voici les étapes principales :
-	1.	ServiceNow envoie les variables non normalisées : Lorsqu’une demande est soumise via ServiceNow, un Job Template ID, des variables spécifiques et l’environnement d’exécution sont envoyés. Ces variables ne sont pas encore normalisées, ce qui va déterminer quel rôle produit doit être exécuté et comment.
-	2.	Lancement du Job Template Starter : Ansible reçoit ces informations et lance le Job Template Starter, qui appelle ensuite le rôle Precheck pour effectuer les vérifications initiales nécessaires avant l’exécution des tâches.
-	3.	Ajout dynamique des hôtes dans l’inventaire : Après les vérifications initiales, Ansible ajoute dynamiquement les hôtes dans l’inventaire correspondant à l’environnement, en fonction des variables d’environnement et de l’ID de l’environnement envoyé par ServiceNow.
-	4.	Identification des informations de connexion (Inventaire et Credentials) : Le système identifie ensuite l’inventaire et les informations de connexion appropriés à utiliser pour l’exécution, en fonction des variables d’environnement et du Job Template ID envoyés par ServiceNow.
-	5.	Lancement du Job Template Request Automation : Une fois l’inventaire et les informations de connexion configurés, le Job Template Request Automation est exécuté, avec les identifiants et l’inventaire correspondant à l’environnement d’exécution.
-	6.	Mapping des variables et normalisation : Après l’exécution du Job Template, le framework effectue un mapping dynamique des rôles produits en fonction de l’ID du Job Template envoyé par ServiceNow. Les variables sont ensuite normalisées en fonction du produit à exécuter.
-	7.	Exécution du rôle produit : Le rôle produit est ensuite lancé avec les variables normalisées.
-	8.	Contrôle par ServiceNow à chaque étape : À chaque étape clé de l’exécution, ServiceNow vérifie l’état de l’exécution, récupère les codes de retour, et assure que le processus se déroule correctement. Cela permet à ServiceNow de suivre en temps réel l’avancement de la demande.
-	9.	Gestion des codes de retour avec le rôle Event Wrapper : Tout au long du processus, l’Event Wrapper gère l’initialisation et la collecte des codes de retour. À la fin de l’exécution du rôle produit, les informations de retour sont envoyées à ServiceNow pour être traitées et enregistrées.
-	10.	Retour vers ServiceNow : Enfin, les résultats de l’exécution, incluant les codes de retour et les informations liées à l’exécution, sont envoyés à ServiceNow pour la mise à jour finale de la demande et la prise de décision.”**
-
-Dans ce modèle, ServiceNow est activement impliqué dans la gestion des codes de retour à chaque étape, assurant un suivi et une gestion en temps réel de l’exécution.
