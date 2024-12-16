@@ -1,5 +1,9 @@
-“Cette slide présente notre cible, c’est-à-dire la solution automatisée que nous mettons en place pour optimiser le processus.
+Speech pour la 3ème slide :
 
-Tout commence de la même façon : les équipes créent une demande dans ServiceNow. À partir de là, le système est capable de déclencher un lancement automatique de playbooks Ansible, sans intervention humaine.
+“Sur cette slide, je présente l’état actuel du processus pour traiter les demandes.
 
-Ces playbooks exécutent ensuite les tâches nécessaires directement sur les serveurs, comme les environnements Linux, en automatisant les actions de configuration, d’installation ou de maintenance.
+Tout commence par la création de la demande dans ServiceNow par les équipes métier ou les utilisateurs. Ensuite, ces demandes sont affectées aux supports BP2I, qui prennent en charge le traitement.
+
+Le support exécute alors les tâches nécessaires, souvent manuellement, sur les serveurs cibles, comme ceux sous Linux, ce qui peut inclure des gestes d’installation, de configuration ou de maintenance.
+
+Ce processus est entièrement manuel, ce qui entraîne plusieurs défis comme une perte de temps et un risque d’erreur humaine. L’objectif de notre projet est donc de proposer une solution d’automatisation pour simplifier ce flux et réduire ces contraintes.”
