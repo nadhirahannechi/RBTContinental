@@ -1,9 +1,1 @@
-Speech pour la 3ème slide :
-
-“Sur cette slide, je présente l’état actuel du processus pour traiter les demandes.
-
-Tout commence par la création de la demande dans ServiceNow par les équipes métier ou les utilisateurs. Ensuite, ces demandes sont affectées aux supports BP2I, qui prennent en charge le traitement.
-
-Le support exécute alors les tâches nécessaires, souvent manuellement, sur les serveurs cibles, comme ceux sous Linux, ce qui peut inclure des gestes d’installation, de configuration ou de maintenance.
-
-Ce processus est entièrement manuel, ce qui entraîne plusieurs défis comme une perte de temps et un risque d’erreur humaine. L’objectif de notre projet est donc de proposer une solution d’automatisation pour simplifier ce flux et réduire ces contraintes.”
+Maintenant que nous avons abordé les grandes lignes du projet, concentrons-nous sur un élément clé : le framework. Ce dernier a été conçu pour optimiser et simplifier le processus global, en le rendant à la fois générique, extensible et modulaire. L’objectif principal est de garantir une gestion efficace des variables et des codes de retour, quel que soit le rôle produit concerné.
