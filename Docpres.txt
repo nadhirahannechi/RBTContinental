@@ -1,5 +1,5 @@
-“Cette architecture montre comment ServiceNow, Ansible Spoke et la CMDB travaillent ensemble pour automatiser et suivre l’exécution des tâches.
-	1.	Création de la demande dans ServiceNow : L’utilisateur initie une demande dans ServiceNow, qui contient les informations nécessaires à l’exécution de la tâche.
-	2.	Récupération des données via la CMDB : ServiceNow interroge la CMDB pour vérifier les ressources disponibles (serveurs, configurations, etc.) avant de passer à l’étape suivante.
-	3.	Lancement du playbook Ansible : Une fois les ressources validées, Ansible Spoke lance automatiquement le playbook pour exécuter les tâches sur les serveurs cibles.
-	4.	Retour et suivi dans ServiceNow : Après l’exécution, les résultats et statuts des tâches sont envoyés à ServiceNow, où l’utilisateur peut suivre l’avancement. En cas d’erreur, une tâche manuelle est créée et assignée à un technicien pour intervention.
+“Cette slide présente notre cible, c’est-à-dire la solution automatisée que nous mettons en place pour optimiser le processus.
+
+Tout commence de la même façon : les équipes créent une demande dans ServiceNow. À partir de là, le système est capable de déclencher un lancement automatique de playbooks Ansible, sans intervention humaine.
+
+Ces playbooks exécutent ensuite les tâches nécessaires directement sur les serveurs, comme les environnements Linux, en automatisant les actions de configuration, d’installation ou de maintenance.
