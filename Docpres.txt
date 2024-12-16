@@ -1,13 +1,8 @@
-Contenu du slide :
-	•	Conclusion :
-	•	Request Automation permet d’automatiser les processus critiques de gestion des configurations, d’installation et de mise à jour des produits via Ansible et ServiceNow, tout en garantissant une gestion centralisée des erreurs et des retours de code.
-	•	Perspectives d’Évolution :
-	•	Ajout de nouveaux produits : Mise en place de rôles pour d’autres produits comme MQSeries, Autosys, et d’autres systèmes clés.
-	•	Amélioration continue : Optimisation de la gestion des retours de code et renforcement de la sécurité des accès.
-	•	Mise en place de solutions de surveillance et remédiation : Intégration de mécanismes de surveillance (logs EFK) et de remédiation automatique des erreurs identifiées. 
-Déploiement actuel :
-	•	MQ Client : Installation, mise à jour, suppression.
-	•	Prochain déploiement : MQ Serveur et Autosys après le gel des modifications.
-Pour l’instant, nous avons réussi à déployer l’automatisation de l’installation, la mise à jour et la suppression du client MQ. Prochainement, après la période de gel, nous procéderons à la mise en place du MQ Serveur et d’Autosys.”
+
+“Dans ce projet, nous pouvons tirer parti du système de Dynamic Automation Remédiation des Incidents pour automatiser la résolution des problèmes rencontrés lors de l’exécution des tâches d’automatisation, notamment lors de l’intégration avec les produits comme MQ, Autosys, etc.”
+
+“Par exemple, si une erreur de volume est détectée, notre système peut automatiquement ajuster les paramètres de volume pour permettre à la tâche de se terminer avec succès. De même, en cas de problèmes de connectivité, comme un échec de “ping”, le framework peut redémarrer la connexion ou prendre des mesures correctives.”
+
+“Cette intégration avec le processus de Request Automation permet non seulement de résoudre les problèmes plus rapidement mais aussi d’automatiser des tâches récurrentes, réduisant ainsi la charge sur les équipes et améliorant la performance globale du système.”
 
 
