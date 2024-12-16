@@ -1,5 +1,24 @@
-Bonjour à tous, je vous remercie d’être présents aujourd’hui. Je vais vous présenter notre projet Request Automation, une initiative visant à automatiser la gestion des demandes unitaires et répétitives pour optimiser nos processus opérationnels.
+Deuxième Slide : “Contexte du Projet”
 
-Nous aborderons dans cette présentation les différentes fonctionnalités que nous avons développées, les avancées réalisées à ce jour, ainsi que le framework que nous utilisons pour gérer l’exécution, le suivi et la fiabilisation des tâches automatisées.
+Contenu du slide (structure proposée) :
+	•	Origine :
+Les demandes provenant de ServiceNow concernent des gestes unitaires récurrents sur des serveurs métiers.
+	•	Problématique :
+	•	Tâches manuelles répétitives.
+	•	Perte de temps et de ressources.
+	•	Risque d’erreurs humaines.
+	•	Enjeu :
+Mettre en place une solution automatisée et fiable pour optimiser ces interventions.
 
-Nous verrons également comment ce projet peut s’intégrer à d’autres initiatives, comme la remédiation d’incidents, afin d’apporter une vision complète de nos solutions d’automatisation.”
+Speech associé :
+
+“Dans cette slide, je souhaite revenir sur le contexte de notre projet.
+
+Aujourd’hui, nos équipes support sont sollicitées via ServiceNow pour exécuter des gestes unitaires sur des serveurs métiers. Ces gestes, bien que simples, sont souvent répétitifs et manuels, ce qui engendre plusieurs problématiques :
+	•	Une perte de temps considérable pour les équipes.
+	•	Une mobilisation excessive des ressources humaines sur des tâches à faible valeur ajoutée.
+	•	Et un risque d’erreurs humaines qui peut impacter la qualité des interventions.
+
+L’enjeu de ce projet est donc de déployer une solution d’automatisation robuste qui nous permettra de traiter ces demandes de manière plus rapide, fiable et standardisée.”
+
+Cela présente clairement l’origine du besoin, les problèmes rencontrés et l’objectif global du projet, en préparant le terrain pour les prochaines slides.
