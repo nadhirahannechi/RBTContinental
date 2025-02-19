@@ -1,0 +1,19 @@
+FROM ubuntu:latest
+
+# Désactiver temporairement la vérification SSL pour éviter les erreurs de certificat
+RUN echo 'Acquire::https::Verify-Peer "false"; Acquire::https::Verify-Host "false";' > /etc/apt/apt.conf.d/99no-check-certificate
+
+# Copier ton fichier contenant les dépôts APT
+COPY monrepo /etc/apt/sources.list
+
+# Mettre à jour les dépôts et réparer les dépendances
+RUN apt-get update --allow-insecure-repositories && \
+    apt-get -y --fix-broken install && \
+    apt-get -y install --no-install-recommends \
+    python3 curl openssh-server perl hostname rsync ca-certificates
+
+# Supprimer la désactivation SSL après installation des certificats
+RUN rm -f /etc/apt/apt.conf.d/99no-check-certificate && \
+    update-ca-certificates --fresh && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
