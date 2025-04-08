@@ -1,0 +1,9 @@
+- name: Convertir version en format numérique simplement
+  vars:
+    version_json: { "Version": "9.3.0.5" }
+  set_fact:
+    version_parts: "{{ version_json.Version.split('.') }}"
+    version_compact: "{{ version_parts[0]|int < 10 | ternary('0' ~ version_parts[0], version_parts[0]) }}
+                     {{ version_parts[1]|int < 10 | ternary('0' ~ version_parts[1], version_parts[1]) }}
+                     {{ version_parts[2]|int < 10 | ternary('0' ~ version_parts[2], version_parts[2]) }}
+                     {{ version_parts[3]|int < 10 | ternary('0' ~ version_parts[3], version_parts[3]) }}"
