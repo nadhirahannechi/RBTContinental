@@ -1,0 +1,7 @@
+This request is to allow communication from Server X to Server Y on TCP port 11611.
+
+This port is required for [name of application or service] to connect to [name of destination service or component] hosted on Server Y.
+
+The flow is critical for ensuring [business process name or technical dependency] works correctly.
+
+Please proceed with opening this port and inform us once the change has been applied.
