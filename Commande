@@ -1,0 +1,1 @@
+curl -k -s https://api.example.com | python3 -c "import sys, json; print(json.load(sys.stdin).get('status'))"
