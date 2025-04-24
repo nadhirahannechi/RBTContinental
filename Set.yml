@@ -1,0 +1,12 @@
+- name: Déterminer le chemin de la commande unset
+  set_fact:
+    unset_cmd: >-
+      {{ '/apps/mqm/product/bin/setmqinst -x -n ' ~ current_version
+         if 'Installation' in current_version
+         else '/apps/mqm/' ~ current_version ~ '/bin/setmqinst -x -n ' ~ current_version }}
+
+- name: Désactiver l’ancienne version (unset)
+  ansible.builtin.command: "{{ unset_cmd }}"
+  become: true
+  become_method: sesu
+  become_flags: "-"
