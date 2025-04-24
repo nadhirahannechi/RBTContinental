@@ -1,1 +1,22 @@
 
+# 1. Lister les fichiers dans /usr/bin contenant 'mqm'
+- name: Lister les fichiers mqm dans /usr/bin
+  ansible.builtin.shell: "ls -lrt /usr/bin | grep mqm | grep setmqinst"
+  register: mqm_ls_output
+
+# 2. Extraire le chemin réel du lien symbolique
+- name: Extraire le chemin complet depuis la ligne de ls
+  set_fact:
+    symlink_target: "{{ mqm_ls_output.stdout | regex_search('-> (/.+)', '\\1') }}"
+
+# 3. Extraire le dossier MQ (avant /bin/setmqinst)
+- name: Déduire le dossier MQ depuis le chemin complet
+  set_fact:
+    real_mq_path: "{{ symlink_target | regex_replace('/bin/setmqinst$', '') }}"
+
+# 4. Désactivation avec le chemin détecté
+- name: Désactiver la version courante via chemin détecté
+  ansible.builtin.command: "{{ real_mq_path }}/bin/setmqinst -x -n {{ current_version }}"
+  become: true
+  become_method: sesu
+  become_flags: "-"
