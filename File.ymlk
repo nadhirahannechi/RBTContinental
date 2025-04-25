@@ -1,0 +1,28 @@
+- name: Mise à jour du lien MQ dans /usr/opt
+  hosts: localhost
+  vars:
+    target_version: "9.0.0.14"
+    target_path: "/apps/mqm/{{ target_version }}"
+    link_dir: "/usr/opt"
+    link_name: "mqm"
+  tasks:
+
+    - name: Créer ou mettre à jour le lien symbolique /usr/opt/mqm
+      file:
+        src: "{{ target_path }}"
+        dest: "{{ link_dir }}/{{ link_name }}"
+        state: link
+        force: true
+
+    - name: Vérifier que le lien /usr/opt/mqm pointe vers la version cible
+      shell: ls -lrt {{ link_dir }} | grep {{ link_name }}
+      register: mqm_link_check
+
+    - name: Échouer si le lien ne contient pas la version cible
+      fail:
+        msg: "Le lien {{ link_dir }}/{{ link_name }} ne pointe pas vers {{ target_version }}"
+      when: mqm_link_check.stdout is not search(target_version)
+
+    - name: Succès
+      debug:
+        msg: "Lien {{ link_dir }}/{{ link_name }} correctement mis à jour vers {{ target_version }}"
