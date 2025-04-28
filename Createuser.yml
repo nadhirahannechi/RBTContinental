@@ -1,0 +1,46 @@
+---
+- name: Vérification et création d'utilisateur Oracle via dbcli
+  hosts: "{{ target_host }}"  # Le serveur Oracle cible
+  gather_facts: no
+  become: yes
+
+  vars:
+    oracle_sid: "{{ sid }}"          # Nom de l'instance Oracle
+    oracle_user: "{{ username }}"    # Utilisateur Oracle à créer
+
+  tasks:
+
+    - name: Vérifier que dbcli est installé
+      command: which dbcli
+      register: dbcli_check
+      ignore_errors: yes
+
+    - name: Gérer absence de dbcli
+      block:
+        - name: Afficher erreur dbcli non installé
+          debug:
+            msg: "ERREUR: La commande 'dbcli' n'est pas installée sur l'hôte {{ inventory_hostname }}."
+
+        - name: Forcer l'arrêt du play
+          meta: end_play
+      when: dbcli_check.rc != 0
+
+    - name: Vérifier si l'utilisateur Oracle existe
+      command: "dbcli database users list --sid {{ oracle_sid }} --user {{ oracle_user }}"
+      register: user_check
+      ignore_errors: yes
+
+    - name: Créer l'utilisateur Oracle s'il n'existe pas
+      command: "dbcli database users create --sid {{ oracle_sid }} --user {{ oracle_user }}"
+      when: user_check.rc != 0 or (user_check.stdout | length == 0)
+      register: user_create
+
+    - name: Afficher résultat de création utilisateur
+      debug:
+        msg: "Utilisateur '{{ oracle_user }}' créé avec succès sur l'instance '{{ oracle_sid }}'."
+      when: user_create is defined
+
+    - name: Informer que l'utilisateur Oracle existe déjà
+      debug:
+        msg: "L'utilisateur '{{ oracle_user }}' existe déjà sur l'instance '{{ oracle_sid }}'."
+      when: user_check.rc == 0 and (user_check.stdout | length > 0)
