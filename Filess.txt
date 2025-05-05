@@ -1,0 +1,64 @@
+Déploiement de l’Agent Autosys via Framework Request Automation
+
+Objectif
+
+Cette procédure permet de déployer automatiquement l’agent Autosys sur un serveur Linux, puis de le rattacher dynamiquement à un manager Autosys. Le processus est entièrement automatisé via Ansible Automation Platform (AAP) et s’intègre dans le framework Request Automation.
+
+⸻
+
+Déclenchement
+
+Le processus est lancé via ServiceNow, qui déclenche un job Ansible en transmettant deux variables clés :
+	•	affected_host : le serveur cible de l’installation.
+	•	instance : l’environnement Autosys (ex. : DEV, PRD) pour déterminer le manager associé.
+
+⸻
+
+Étapes du processus
+
+1. Initialisation
+
+Le framework exécute un playbook Ansible qui initialise l’environnement, crée un système de fichiers temporaire sécurisé et prépare les variables nécessaires.
+
+2. Installation de l’agent Autosys
+	•	Téléchargement et exécution du binaire d’installation.
+	•	Installation silencieuse de l’agent sur le serveur cible.
+	•	Activation et démarrage du service Autosys.
+
+3. Rattachement au manager
+	•	Lecture des données d’instance depuis un fichier sécurisé.
+	•	Déchiffrement à l’aide d’Ansible Vault.
+	•	Exécution du rattachement selon l’instance spécifiée.
+	•	Validation de la communication entre l’agent et le manager.
+
+⸻
+
+Sécurité
+	•	Les credentials du manager Autosys sont stockés dans un fichier chiffré avec Ansible Vault.
+	•	Le mot de passe du vault est lu de façon sécurisée et n’apparaît jamais en clair.
+	•	L’agent ne peut être rattaché qu’après déchiffrement réussi.
+
+⸻Chaque exécution retourne un code standardisé, permettant de piloter les workflows ServiceNow en toute fiabilité :
+Résultat & retour d’exécution
+	•	En cas de succès :
+	•	L’agent est installé, configuré et rattaché.
+	•	Retour de code = 0, journal d’exécution complet disponible.
+	•	En cas d’échec :
+	•	Retour de code = 1.
+	•	Le framework fournit une sortie JSON contenant le playbook, le rôle exécuté, le message d’erreur et les logs associés.
+Exemple de Suivi via EventWrapper (JSON final)
+{
+  "playbook": "AutosysAgent_Install_V12",
+  "role": "autosys_agent_install",
+  "status_code": 0,
+  "status_message": "Successfully installed and attached to the manager AUTOSYS_MGR_01",
+  "component": "autosys"
+}
+Intégration ServiceNow
+	•	Le playbook est appelé depuis un Job Template AAP configuré dans le catalogue ServiceNow.
+	•	Les paramètres tels que hostname, manager, et environnement sont passés via la Request.
+	•	Le résultat du playbook est collecté et affiché automatiquement dans la tâche ServiceNow.
+
+
+
+Codes de retour (Return Codes)
